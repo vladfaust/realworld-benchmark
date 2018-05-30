@@ -9,6 +9,7 @@ require "time_format"
 
 host = ""
 port = 0
+path_prefix = ""
 
 USERS_COUNT           = 100
 ARTICLES_PER_USER     = 100
@@ -25,6 +26,10 @@ parser = OptionParser.parse! do |parser|
 
   parser.on("-p PORT", "--port=PORT", "Conduit API port") do |p|
     port = p.to_i
+  end
+
+  parser.on("--path-prefix PREFIX", "API path prefix (e.g. /api)") do |p|
+    path_prefix = p
   end
 
   parser.on("--help", "Show this help") do
@@ -77,7 +82,7 @@ counter = 1
 elapsed = Time.measure do
   USERS_COUNT.times do |i|
     counter += 1
-    response = client.post("/users", headers: HTTP::Headers{"Content-Type" => "application/json"}, body: {
+    response = client.post("#{path_prefix}/users", headers: HTTP::Headers{"Content-Type" => "application/json"}, body: {
       "user" => {
         "email"    => "user#{i}@example.com",
         "password" => "qwerty",
@@ -104,7 +109,7 @@ elapsed = Time.measure do
   USERS_COUNT.times do |user_id|
     ARTICLES_PER_USER.times do |article_id|
       counter += 1
-      client.post("/articles", headers: HTTP::Headers{"Content-Type" => "application/json", "Authorization" => "Token #{users_jwts[user_id + 1]}"}, body: {
+      client.post("#{path_prefix}/articles", headers: HTTP::Headers{"Content-Type" => "application/json", "Authorization" => "Token #{users_jwts[user_id + 1]}"}, body: {
         "article" => {
           "title"       => "Article #{user_id + 1}-#{article_id + 1}",
           "description" => "Article #{user_id + 1}-#{article_id + 1} description",
@@ -129,7 +134,7 @@ elapsed = Time.measure do
     counter += count
     count.times do
       slug = "article-#{rand(2..USERS_COUNT)}-#{rand(2..ARTICLES_PER_USER)}"
-      client.post("/articles/" + slug + "/comments", headers: HTTP::Headers{"Content-Type" => "application/json", "Authorization" => "Token #{users_jwts[user_id + 1]}"}, body: {
+      client.post("#{path_prefix}/articles/" + slug + "/comments", headers: HTTP::Headers{"Content-Type" => "application/json", "Authorization" => "Token #{users_jwts[user_id + 1]}"}, body: {
         "comment" => {
           "body" => "Thank you so much!",
         },
@@ -140,7 +145,7 @@ end
 
 # Create 5 comments for article-1-1
 5.times do
-  client.post("/articles/article-1-1/comments", headers: HTTP::Headers{"Content-Type" => "application/json", "Authorization" => "Token #{users_jwts[rand(USERS_COUNT + 1)]}"}, body: {
+  client.post("#{path_prefix}/articles/article-1-1/comments", headers: HTTP::Headers{"Content-Type" => "application/json", "Authorization" => "Token #{users_jwts[rand(USERS_COUNT + 1)]}"}, body: {
     "comment" => {
       "body" => "Thank you so much!",
     },
@@ -162,7 +167,7 @@ elapsed = Time.measure do
       counter += count
       count.times do
         slug = "article-#{user_id + 1}-#{article_id + 1}"
-        client.post("/articles/" + slug + "/favorite", headers: HTTP::Headers{"Content-Type" => "application/json", "Authorization" => "Token #{users_jwts[rand(1..USERS_COUNT)]}"})
+        client.post("#{path_prefix}/articles/" + slug + "/favorite", headers: HTTP::Headers{"Content-Type" => "application/json", "Authorization" => "Token #{users_jwts[rand(1..USERS_COUNT)]}"})
       end
     end
   end
@@ -181,7 +186,7 @@ elapsed = Time.measure do
     count = rand(FOLLOWINGS_PER_USER)
     counter += count
     count.times do
-      client.post("/profiles/user#{rand(1..USERS_COUNT)}/follow", headers: HTTP::Headers{"Content-Type" => "application/json", "Authorization" => "Token #{users_jwts[user_id + 1]}"})
+      client.post("#{path_prefix}/profiles/user#{rand(1..USERS_COUNT)}/follow", headers: HTTP::Headers{"Content-Type" => "application/json", "Authorization" => "Token #{users_jwts[user_id + 1]}"})
     end
   end
 end
@@ -196,7 +201,7 @@ token = users_jwts[1]
 
 json_header = "-H \"Content-Type: application/json\""
 auth_header = "-H \"Authorization: Token #{token}\""
-url_base = "http://#{host}:#{port}"
+url_base = "http://#{host}:#{port}#{path_prefix}"
 
 puts "\nNow running benchmarks with wrk..."
 
