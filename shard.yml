@@ -1,0 +1,18 @@
+name: realworld-benchmark
+version: 0.1.0
+
+authors:
+  - Vlad Faust <mail@vladfaust.com>
+
+targets:
+  realworld-benchmark:
+    main: src/realworld-benchmark.cr
+
+crystal: 0.24.2
+
+license: MIT
+
+dependencies:
+  time_format:
+    github: vladfaust/time_format.cr
+    version: ~> 0.1.1

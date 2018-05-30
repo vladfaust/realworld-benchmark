@@ -1,0 +1,6 @@
+version: 1.0
+shards:
+  time_format:
+    github: vladfaust/time_format.cr
+    version: 0.1.1
+
